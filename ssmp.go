@@ -16,16 +16,26 @@ var _ cli.ValueSource = &ParameterValueSource{}
 // It implements the cli.ValueSource interface.
 type ParameterValueSource struct {
 	Name    string
-	Options []LoadOptionsFunc
+	Options []func(*config.LoadOptions) error
 }
 
 // Parameter creates a new ParameterValueSource for the given parameter name.
 // Optional AWS SDK configuration options can be provided.
-func Parameter(name string, opts ...LoadOptionsFunc) *ParameterValueSource {
+func Parameter(name string, opts ...func(*config.LoadOptions) error) *ParameterValueSource {
 	return &ParameterValueSource{
 		Name:    name,
 		Options: opts,
 	}
+}
+
+// Parameters is a helper function to encapsulate a number of ParameterValueSource
+// together as a ValueSourceChain.
+func Parameters(names ...string) cli.ValueSourceChain {
+	sources := make([]cli.ValueSource, len(names))
+	for index, name := range names {
+		sources[index] = Parameter(name)
+	}
+	return cli.NewValueSourceChain(sources...)
 }
 
 // Lookup retrieves the parameter value from the SSM Parameter Store.

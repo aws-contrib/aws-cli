@@ -16,16 +16,26 @@ var _ cli.ValueSource = &SecretValueSource{}
 // It implements the cli.ValueSource interface.
 type SecretValueSource struct {
 	SecretId string
-	Options  []LoadOptionsFunc
+	Options  []func(*config.LoadOptions) error
 }
 
 // Secret creates a new SecretValueSource for the given secret ID.
 // Optional AWS SDK configuration options can be provided.
-func Secret(secretId string, opts ...LoadOptionsFunc) *SecretValueSource {
+func Secret(secretId string, opts ...func(*config.LoadOptions) error) *SecretValueSource {
 	return &SecretValueSource{
 		SecretId: secretId,
 		Options:  opts,
 	}
+}
+
+// Secrets is a helper function to encapsulate a number of SecretValueSource
+// together as a ValueSourceChain.
+func Secrets(secretIds ...string) cli.ValueSourceChain {
+	sources := make([]cli.ValueSource, len(secretIds))
+	for index, secretId := range secretIds {
+		sources[index] = Secret(secretId)
+	}
+	return cli.NewValueSourceChain(sources...)
 }
 
 // Lookup retrieves the secret value from AWS Secrets Manager.

@@ -40,6 +40,15 @@ Fetch values from Systems Manager Parameter Store. It seamlessly handles standar
 }
 ```
 
+If you have multiple parameters you want to check as fallbacks, use the `awscli.Parameters` helper:
+
+```go
+&cli.StringFlag{
+    Name: "db-password",
+    Sources: awscli.Parameters("/prod/db/password", "/fallback/db/password"),
+}
+```
+
 ## Secrets Manager
 
 Fetch secrets directly into your CLI flags. It supports both `SecretString` and `SecretBinary` return values.
@@ -53,6 +62,15 @@ Fetch secrets directly into your CLI flags. It supports both `SecretString` and 
 }
 ```
 
+If you have multiple secrets you want to check as fallbacks, use the `awscli.Secrets` helper:
+
+```go
+&cli.StringFlag{
+    Name: "api-key",
+    Sources: awscli.Secrets("my-app-api-key", "legacy-app-api-key"),
+}
+```
+
 ## S3
 
 Fetch flag values from the contents of an S3 object.
@@ -63,6 +81,15 @@ Fetch flag values from the contents of an S3 object.
     Sources: cli.NewValueSourceChain(
         awscli.S3Object("my-bucket", "path/to/config.json"),
     ),
+}
+```
+
+If you have multiple S3 objects you want to check as fallbacks, use the `awscli.S3Objects` helper using `s3://` URIs:
+
+```go
+&cli.StringFlag{
+    Name: "config-file",
+    Sources: awscli.S3Objects("s3://my-bucket/path/to/config.json", "s3://default-bucket/default.json"),
 }
 ```
 

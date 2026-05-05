@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/url"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -18,17 +20,34 @@ var _ cli.ValueSource = &S3ObjectValueSource{}
 type S3ObjectValueSource struct {
 	Bucket  string
 	Key     string
-	Options []LoadOptionsFunc
+	Options []func(*config.LoadOptions) error
 }
 
 // S3Object creates a new S3ObjectValueSource for the given bucket and key.
 // Optional AWS SDK configuration options can be provided.
-func S3Object(bucket, key string, opts ...LoadOptionsFunc) *S3ObjectValueSource {
+func S3Object(bucket, key string, opts ...func(*config.LoadOptions) error) *S3ObjectValueSource {
 	return &S3ObjectValueSource{
 		Bucket:  bucket,
 		Key:     key,
 		Options: opts,
 	}
+}
+
+// S3Objects is a helper function to encapsulate a number of S3ObjectValueSource
+// together as a ValueSourceChain. It expects S3 URIs in the format s3://bucket/key.
+func S3Objects(uris ...string) cli.ValueSourceChain {
+	sources := make([]cli.ValueSource, 0, len(uris))
+	for _, uri := range uris {
+		uri, err := url.Parse(uri)
+		if err != nil || uri.Scheme != "s3" {
+			continue
+		}
+		key := strings.TrimPrefix(uri.Path, "/")
+		if uri.Host != "" && key != "" {
+			sources = append(sources, S3Object(uri.Host, key))
+		}
+	}
+	return cli.NewValueSourceChain(sources...)
 }
 
 // Lookup retrieves the object content from S3.
