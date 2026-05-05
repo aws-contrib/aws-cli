@@ -1,4 +1,4 @@
-package awscli
+package awss3
 
 import (
 	"context"
@@ -9,42 +9,43 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/urfave/cli/v3"
 )
 
-var _ cli.ValueSource = &S3ObjectValueSource{}
+var _ cli.ValueSource = &ObjectValueSource{}
 
-// S3ObjectValueSource retrieves values from an AWS S3 object.
+// ObjectValueSource retrieves values from an AWS S3 object.
 // It implements the cli.ValueSource interface.
-type S3ObjectValueSource struct {
+type ObjectValueSource struct {
 	Bucket  string
 	Key     string
 	Options []func(*config.LoadOptions) error
 }
 
-// S3Object creates a new S3ObjectValueSource for the given bucket and key.
+// Object creates a new ObjectValueSource for the given bucket and key.
 // Optional AWS SDK configuration options can be provided.
-func S3Object(bucket, key string, opts ...func(*config.LoadOptions) error) *S3ObjectValueSource {
-	return &S3ObjectValueSource{
+func Object(bucket, key string, opts ...func(*config.LoadOptions) error) *ObjectValueSource {
+	return &ObjectValueSource{
 		Bucket:  bucket,
 		Key:     key,
 		Options: opts,
 	}
 }
 
-// S3Objects is a helper function to encapsulate a number of S3ObjectValueSource
+// Objects is a helper function to encapsulate a number of ObjectValueSource
 // together as a ValueSourceChain. It expects S3 URIs in the format s3://bucket/key.
-func S3Objects(uris ...string) cli.ValueSourceChain {
+func Objects(uris ...string) cli.ValueSourceChain {
 	sources := make([]cli.ValueSource, 0, len(uris))
 	for _, uri := range uris {
-		uri, err := url.Parse(uri)
-		if err != nil || uri.Scheme != "s3" {
+		u, err := url.Parse(uri)
+		if err != nil || u.Scheme != "s3" {
 			continue
 		}
-		key := strings.TrimPrefix(uri.Path, "/")
-		if uri.Host != "" && key != "" {
-			sources = append(sources, S3Object(uri.Host, key))
+		bucket := u.Host
+		key := strings.TrimPrefix(u.Path, "/")
+		if bucket != "" && key != "" {
+			sources = append(sources, Object(bucket, key))
 		}
 	}
 	return cli.NewValueSourceChain(sources...)
@@ -52,7 +53,7 @@ func S3Objects(uris ...string) cli.ValueSourceChain {
 
 // Lookup retrieves the object content from S3.
 // It returns the object content as a string and a boolean indicating whether the retrieval was successful.
-func (f *S3ObjectValueSource) Lookup() (string, bool) {
+func (f *ObjectValueSource) Lookup() (string, bool) {
 	ctx := context.Background()
 
 	cfg, err := config.LoadDefaultConfig(ctx, f.Options...)
@@ -60,7 +61,7 @@ func (f *S3ObjectValueSource) Lookup() (string, bool) {
 		return "", false
 	}
 
-	output, err := s3.NewFromConfig(cfg).GetObject(ctx, &s3.GetObjectInput{
+	output, err := awss3.NewFromConfig(cfg).GetObject(ctx, &awss3.GetObjectInput{
 		Bucket: aws.String(f.Bucket),
 		Key:    aws.String(f.Key),
 	})
@@ -77,12 +78,12 @@ func (f *S3ObjectValueSource) Lookup() (string, bool) {
 	return string(data), true
 }
 
-// String returns a string representation of the S3ObjectValueSource.
-func (f *S3ObjectValueSource) String() string {
+// String returns a string representation of the ObjectValueSource.
+func (f *ObjectValueSource) String() string {
 	return fmt.Sprintf("s3://%s/%s", f.Bucket, f.Key)
 }
 
-// GoString returns a Go-syntax representation of the S3ObjectValueSource.
-func (f *S3ObjectValueSource) GoString() string {
-	return fmt.Sprintf("&S3ObjectValueSource{Bucket:%[1]q, Key:%[2]q}", f.Bucket, f.Key)
+// GoString returns a Go-syntax representation of the ObjectValueSource.
+func (f *ObjectValueSource) GoString() string {
+	return fmt.Sprintf("&ObjectValueSource{Bucket:%[1]q, Key:%[2]q}", f.Bucket, f.Key)
 }

@@ -1,4 +1,4 @@
-package awscli
+package awssmp
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/urfave/cli/v3"
 )
 
@@ -32,8 +32,8 @@ func Parameter(name string, opts ...func(*config.LoadOptions) error) *ParameterV
 // together as a ValueSourceChain.
 func Parameters(names ...string) cli.ValueSourceChain {
 	sources := make([]cli.ValueSource, len(names))
-	for index, name := range names {
-		sources[index] = Parameter(name)
+	for i, name := range names {
+		sources[i] = Parameter(name)
 	}
 	return cli.NewValueSourceChain(sources...)
 }
@@ -48,7 +48,7 @@ func (f *ParameterValueSource) Lookup() (string, bool) {
 		return "", false
 	}
 
-	output, err := ssm.NewFromConfig(cfg).GetParameter(ctx, &ssm.GetParameterInput{
+	output, err := awsssm.NewFromConfig(cfg).GetParameter(ctx, &awsssm.GetParameterInput{
 		Name:           aws.String(f.Name),
 		WithDecryption: aws.Bool(true),
 	})

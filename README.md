@@ -16,92 +16,42 @@
 go get github.com/aws-contrib/aws-cli
 ```
 
-## Usage
+## Packages
+
+The project is divided into modular subpackages, allowing you to only import the AWS SDK dependencies you actually need.
+
+| Package | Description | Documentation |
+| :--- | :--- | :--- |
+| **`awssmp`** | AWS Systems Manager (SSM) Parameter Store | [View Docs](awssmp/README.md) |
+| **`awssm`** | AWS Secrets Manager | [View Docs](awssm/README.md) |
+| **`awss3`** | AWS S3 Objects | [View Docs](awss3/README.md) |
+
+## Usage Overview
 
 You can use the provided value sources inside a `cli.NewValueSourceChain` when defining your application's flags.
 
 ```go
 import (
-    "github.com/aws-contrib/aws-cli"
+    "github.com/aws-contrib/aws-cli/awssmp"
     "github.com/urfave/cli/v3"
 )
-```
 
-## Systems Manager (SSM)
-
-Fetch values from Systems Manager Parameter Store. It seamlessly handles standard, secure (automatically decrypted), and list parameters.
-
-```go
-&cli.StringFlag{
-    Name: "db-password",
-    Sources: cli.NewValueSourceChain(
-        awscli.Parameter("/prod/db/password"),
-    ),
+func main() {
+    cmd := &cli.Command{
+        Flags: []cli.Flag{
+            &cli.StringFlag{
+                Name: "db-password",
+                // Automatically fetches the parameter from AWS when parsing flags
+                Sources: cli.NewValueSourceChain(
+                    awssmp.Parameter("/prod/db/password"),
+                ),
+            },
+        },
+    }
 }
 ```
 
-If you have multiple parameters you want to check as fallbacks, use the `awscli.Parameters` helper:
-
-```go
-&cli.StringFlag{
-    Name: "db-password",
-    Sources: awscli.Parameters("/prod/db/password", "/fallback/db/password"),
-}
-```
-
-## Secrets Manager
-
-Fetch secrets directly into your CLI flags. It supports both `SecretString` and `SecretBinary` return values.
-
-```go
-&cli.StringFlag{
-    Name: "api-key",
-    Sources: cli.NewValueSourceChain(
-        awscli.Secret("my-app-api-key"),
-    ),
-}
-```
-
-If you have multiple secrets you want to check as fallbacks, use the `awscli.Secrets` helper:
-
-```go
-&cli.StringFlag{
-    Name: "api-key",
-    Sources: awscli.Secrets("my-app-api-key", "legacy-app-api-key"),
-}
-```
-
-## S3
-
-Fetch flag values from the contents of an S3 object.
-
-```go
-&cli.StringFlag{
-    Name: "config-file",
-    Sources: cli.NewValueSourceChain(
-        awscli.S3Object("my-bucket", "path/to/config.json"),
-    ),
-}
-```
-
-If you have multiple S3 objects you want to check as fallbacks, use the `awscli.S3Objects` helper using `s3://` URIs:
-
-```go
-&cli.StringFlag{
-    Name: "config-file",
-    Sources: awscli.S3Objects("s3://my-bucket/path/to/config.json", "s3://default-bucket/default.json"),
-}
-```
-
-## Configuration
-
-### Custom AWS Configuration
-
-You can pass standard AWS SDK functional options to the constructors to configure the underlying AWS client (e.g., setting a specific region or custom endpoint).
-
-```go
-awscli.Parameter("/my/param", config.WithRegion("us-west-2"))
-```
+For detailed examples, fallbacks, and configuring the AWS SDK client, please see the individual package documentation linked above.
 
 ## License
 

@@ -1,4 +1,4 @@
-package awscli
+package awssm
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	awssecretsmanager "github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/urfave/cli/v3"
 )
 
@@ -32,8 +32,8 @@ func Secret(secretId string, opts ...func(*config.LoadOptions) error) *SecretVal
 // together as a ValueSourceChain.
 func Secrets(secretIds ...string) cli.ValueSourceChain {
 	sources := make([]cli.ValueSource, len(secretIds))
-	for index, secretId := range secretIds {
-		sources[index] = Secret(secretId)
+	for i, secretId := range secretIds {
+		sources[i] = Secret(secretId)
 	}
 	return cli.NewValueSourceChain(sources...)
 }
@@ -48,7 +48,7 @@ func (f *SecretValueSource) Lookup() (string, bool) {
 		return "", false
 	}
 
-	output, err := secretsmanager.NewFromConfig(cfg).GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{
+	output, err := awssecretsmanager.NewFromConfig(cfg).GetSecretValue(ctx, &awssecretsmanager.GetSecretValueInput{
 		SecretId: aws.String(f.SecretId),
 	})
 	if err != nil {
