@@ -65,4 +65,4 @@ go tool ginkgo ./...
 
 ## License
 
-[MIT](LICENSE) © 2026
+[MIT](LICENSE)
