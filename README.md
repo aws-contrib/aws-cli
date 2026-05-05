@@ -103,51 +103,6 @@ You can pass standard AWS SDK functional options to the constructors to configur
 awscli.Parameter("/my/param", config.WithRegion("us-west-2"))
 ```
 
-### Dynamic Updates for Long-Running Processes
-
-By default, `urfave/cli` evaluates value sources **exactly once** during application startup. If the value in AWS changes while your application is running (e.g., inside an ECS Task), the application will not see the new value.
-
-If you are building a long-running service and want to react to secret or parameter changes without restarting the container, you can retain a reference to the `ValueSource` and manually poll it in a background goroutine:
-
-```go
-func main() {
-    apiKeySource := awscli.Secret("my-app-api-key")
-
-    cmd := &cli.Command{
-        Flags: []cli.Flag{
-            &cli.StringFlag{
-                Name: "api-key",
-                Sources: cli.NewValueSourceChain(apiKeySource),
-            },
-        },
-        Action: func(ctx context.Context, c *cli.Command) error {
-            currentKey := c.String("api-key")
-
-            // Poll for updates in the background
-            go func() {
-                ticker := time.NewTicker(5 * time.Minute)
-                defer ticker.Stop()
-
-                for {
-                    select {
-                    case <-ctx.Done():
-                        return
-                    case <-ticker.C:
-                        if newKey, ok := apiKeySource.Lookup(); ok && newKey != currentKey {
-                            currentKey = newKey
-                            // Trigger your internal re-initialization...
-                        }
-                    }
-                }
-            }()
-
-            <-ctx.Done()
-            return nil
-        },
-    }
-}
-```
-
 ## License
 
 [MIT](LICENSE) © 2026
