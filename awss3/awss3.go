@@ -13,27 +13,27 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var _ cli.ValueSource = &ObjectValueSource{}
+var _ cli.ValueSource = &ValueSource{}
 
-// ObjectValueSource retrieves values from an AWS S3 object.
+// ValueSource retrieves values from an AWS S3 object.
 // It implements the cli.ValueSource interface.
-type ObjectValueSource struct {
+type ValueSource struct {
 	Bucket  string
 	Key     string
 	Options []func(*config.LoadOptions) error
 }
 
-// Object creates a new ObjectValueSource for the given bucket and key.
+// Object creates a new ValueSource for the given bucket and key.
 // Optional AWS SDK configuration options can be provided.
-func Object(bucket, key string, opts ...func(*config.LoadOptions) error) *ObjectValueSource {
-	return &ObjectValueSource{
+func Object(bucket, key string, opts ...func(*config.LoadOptions) error) *ValueSource {
+	return &ValueSource{
 		Bucket:  bucket,
 		Key:     key,
 		Options: opts,
 	}
 }
 
-// Objects is a helper function to encapsulate a number of ObjectValueSource
+// Objects is a helper function to encapsulate a number of ValueSource
 // together as a ValueSourceChain. It expects S3 URIs in the format s3://bucket/key.
 func Objects(uris ...string) cli.ValueSourceChain {
 	sources := make([]cli.ValueSource, 0, len(uris))
@@ -53,7 +53,7 @@ func Objects(uris ...string) cli.ValueSourceChain {
 
 // Lookup retrieves the object content from S3.
 // It returns the object content as a string and a boolean indicating whether the retrieval was successful.
-func (f *ObjectValueSource) Lookup() (string, bool) {
+func (f *ValueSource) Lookup() (string, bool) {
 	ctx := context.Background()
 
 	cfg, err := config.LoadDefaultConfig(ctx, f.Options...)
@@ -78,12 +78,12 @@ func (f *ObjectValueSource) Lookup() (string, bool) {
 	return string(data), true
 }
 
-// String returns a string representation of the ObjectValueSource.
-func (f *ObjectValueSource) String() string {
+// String returns a string representation of the ValueSource.
+func (f *ValueSource) String() string {
 	return fmt.Sprintf("s3://%s/%s", f.Bucket, f.Key)
 }
 
-// GoString returns a Go-syntax representation of the ObjectValueSource.
-func (f *ObjectValueSource) GoString() string {
-	return fmt.Sprintf("&ObjectValueSource{Bucket:%[1]q, Key:%[2]q}", f.Bucket, f.Key)
+// GoString returns a Go-syntax representation of the ValueSource.
+func (f *ValueSource) GoString() string {
+	return fmt.Sprintf("&ValueSource{Bucket:%[1]q, Key:%[2]q}", f.Bucket, f.Key)
 }

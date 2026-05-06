@@ -7,8 +7,8 @@ import (
 	"github.com/aws-contrib/aws-cli/awssmp"
 )
 
-var _ = Describe("ParameterValueSource", func() {
-	var source *awssmp.ParameterValueSource
+var _ = Describe("ValueSource", func() {
+	var source *awssmp.ValueSource
 
 	BeforeEach(func() {
 		source = awssmp.Parameter("test-parameter")
@@ -26,7 +26,7 @@ var _ = Describe("ParameterValueSource", func() {
 		})
 
 		It("should return a correctly formatted GoString", func() {
-			Expect(source.GoString()).To(Equal("&ParameterValueSource{Name:\"test-parameter\"}"))
+			Expect(source.GoString()).To(Equal("&ValueSource{Name:\"test-parameter\"}"))
 		})
 	})
 

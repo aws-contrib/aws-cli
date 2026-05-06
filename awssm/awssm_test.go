@@ -7,8 +7,8 @@ import (
 	"github.com/aws-contrib/aws-cli/awssm"
 )
 
-var _ = Describe("SecretValueSource", func() {
-	var source *awssm.SecretValueSource
+var _ = Describe("ValueSource", func() {
+	var source *awssm.ValueSource
 
 	BeforeEach(func() {
 		source = awssm.Secret("test-secret")
@@ -26,7 +26,7 @@ var _ = Describe("SecretValueSource", func() {
 		})
 
 		It("should return a correctly formatted GoString", func() {
-			Expect(source.GoString()).To(Equal("&SecretValueSource{SecretId:\"test-secret\"}"))
+			Expect(source.GoString()).To(Equal("&ValueSource{SecretId:\"test-secret\"}"))
 		})
 	})
 

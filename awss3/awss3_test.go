@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ObjectValueSource", func() {
-	var source *awss3.ObjectValueSource
+var _ = Describe("ValueSource", func() {
+	var source *awss3.ValueSource
 
 	BeforeEach(func() {
 		source = awss3.Object("test-bucket", "test-key")
@@ -27,7 +27,7 @@ var _ = Describe("ObjectValueSource", func() {
 		})
 
 		It("should return a correctly formatted GoString", func() {
-			Expect(source.GoString()).To(Equal("&ObjectValueSource{Bucket:\"test-bucket\", Key:\"test-key\"}"))
+			Expect(source.GoString()).To(Equal("&ValueSource{Bucket:\"test-bucket\", Key:\"test-key\"}"))
 		})
 	})
 

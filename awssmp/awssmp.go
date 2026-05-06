@@ -10,25 +10,25 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var _ cli.ValueSource = &ParameterValueSource{}
+var _ cli.ValueSource = &ValueSource{}
 
-// ParameterValueSource retrieves values from AWS Systems Manager (SSM) Parameter Store.
+// ValueSource retrieves values from AWS Systems Manager (SSM) Parameter Store.
 // It implements the cli.ValueSource interface.
-type ParameterValueSource struct {
+type ValueSource struct {
 	Name    string
 	Options []func(*config.LoadOptions) error
 }
 
-// Parameter creates a new ParameterValueSource for the given parameter name.
+// Parameter creates a new ValueSource for the given parameter name.
 // Optional AWS SDK configuration options can be provided.
-func Parameter(name string, opts ...func(*config.LoadOptions) error) *ParameterValueSource {
-	return &ParameterValueSource{
+func Parameter(name string, opts ...func(*config.LoadOptions) error) *ValueSource {
+	return &ValueSource{
 		Name:    name,
 		Options: opts,
 	}
 }
 
-// Parameters is a helper function to encapsulate a number of ParameterValueSource
+// Parameters is a helper function to encapsulate a number of ValueSource
 // together as a ValueSourceChain.
 func Parameters(names ...string) cli.ValueSourceChain {
 	sources := make([]cli.ValueSource, len(names))
@@ -40,7 +40,7 @@ func Parameters(names ...string) cli.ValueSourceChain {
 
 // Lookup retrieves the parameter value from the SSM Parameter Store.
 // It returns the parameter value and a boolean indicating whether the retrieval was successful.
-func (f *ParameterValueSource) Lookup() (string, bool) {
+func (f *ValueSource) Lookup() (string, bool) {
 	ctx := context.Background()
 
 	cfg, err := config.LoadDefaultConfig(ctx, f.Options...)
@@ -56,12 +56,12 @@ func (f *ParameterValueSource) Lookup() (string, bool) {
 	return aws.ToString(output.Parameter.Value), err == nil
 }
 
-// String returns a string representation of the ParameterValueSource.
-func (f *ParameterValueSource) String() string {
+// String returns a string representation of the ValueSource.
+func (f *ValueSource) String() string {
 	return fmt.Sprintf("name %[1]q", f.Name)
 }
 
-// GoString returns a Go-syntax representation of the ParameterValueSource.
-func (f *ParameterValueSource) GoString() string {
-	return fmt.Sprintf("&ParameterValueSource{Name:%[1]q}", f.Name)
+// GoString returns a Go-syntax representation of the ValueSource.
+func (f *ValueSource) GoString() string {
+	return fmt.Sprintf("&ValueSource{Name:%[1]q}", f.Name)
 }
